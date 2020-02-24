@@ -1,0 +1,278 @@
+<html>
+<head>
+	<style>
+	*{padding: 0; margin:0;}
+	canvas{ background: #eeee; display: block; margin: 0 auto;}
+	</style>
+</head>
+<body>
+<canvas id= "myCanvas" width="800" height="600"></canvas>
+<script type="text/javascript">
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+document.addEventListener("mousemove", mouseMoveHandler, false);
+canvas.addEventListener("mousedown", getPosition, false);
+canvas.addEventListener("mouseup", getPosition2, false);
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
+var gameStarted = false;
+var options = false;
+var buttons = [];
+
+var pX = 400;
+var pY = 300;
+var mouseIsDown = false;
+
+var upPressed = false;
+var downPressed = false;
+var leftPressed = false;
+var rightPressed = false;
+var uPressed = false;
+
+var players = [];
+var gravity = .75;
+
+var startscreen = new Image();
+startscreen.src = "startscreen.png";
+var option = new Image();
+option.src = "options.png";
+
+function mouseMoveHandler(e) {
+    pX = e.clientX - canvas.offsetLeft;
+    pY = e.clientY - canvas.offsetTop;
+}
+function getPosition2(event){
+	mouseIsDown = false;
+}
+function getPosition(event)
+{
+	mouseIsDown = true;
+}
+
+function keyDownHandler(e)
+{
+	if(e.keyCode == 38)
+	{
+		upPressed = true;
+	}
+	if(e.keyCode == 40)
+	{
+		downPressed = true;
+	}
+	if(e.keyCode == 37)
+	{
+		leftPressed = true;
+	}
+	if(e.keyCode == 39)
+	{
+		rightPressed = true;
+	}
+	if(e.keyCode == 85)
+	{
+		uPressed = true;
+	}
+}
+
+function keyUpHandler(e)
+{
+	if(e.keyCode == 38)
+	{
+		upPressed = false;
+	}
+	if(e.keyCode == 40)
+	{
+		downPressed = false;
+	}
+	if(e.keyCode == 37)
+	{
+		leftPressed = false;
+	}
+	if(e.keyCode == 39)
+	{
+		rightPressed = false;
+	}
+	if(e.keyCode == 85)
+	{
+		uPressed = false;
+	}
+}
+
+function Player(x,y,w,h,yV,xV,standing,jump,s,direction,reach,meleeing)
+{
+this.x = x;
+this.y = y;
+this.w = w;
+this.h = h;
+this.yV = yV;
+this.xV = xV;
+this.standing = standing;
+this.jump = jump;
+this.s = s;
+this.direction = direction;
+this.reach = reach;
+this.meleeing = meleeing;
+//0 left 1 right
+}
+
+players[0] = new Player(0,800,50,100,0,0,false,10,5,1,70,false);
+players[1] = new Player(100,800,50,100,0,0,false,10,5,1,100,false);
+
+function drawPlayer()
+{
+	for(var a = 0; a < players.length; a++)
+	{
+		players[a].xV = 0;
+		players[a].standing = false;
+		players[a].yV += gravity;
+		players[a].meleeing = false;
+		if(players[a].y + players[a].h >= 600)
+		{
+			players[a].y = 600 - players[a].h;
+			players[a].yV = 0;
+			players[a].standing = true;
+		}
+		if(a == 0)
+		{
+			if(uPressed)
+			{
+				players[a].meleeing = true;
+			}
+			if(players[a].meleeing)
+			{
+				if(players[a].direction == 0)
+				{
+					ctx.fillStyle = "green";
+					players[a].meleeing = true;
+					ctx.fillRect(players[a].x-players[a].reach,players[a].y+(players[a].h/3),players[a].reach,20);
+				}
+				if(players[a].direction == 1)
+				{
+					ctx.fillStyle = "green";
+					players[a].meleeing = true;
+					ctx.fillRect(players[a].x+players[a].w,players[a].y+(players[a].h/3),players[a].reach,20);
+				}
+			}
+			if(rightPressed && !players[a].meleeing)
+			{
+				players[a].xV = players[a].s;
+				players[a].direction = 1;
+			}
+			if(leftPressed && !players[a].meleeing)
+			{
+				players[a].xV = (players[a].s)*-1;
+				players[a].direction = 0;
+			}
+			if(upPressed && players[a].standing)
+			{
+				players[a].yV = -20;
+			}
+		}
+		players[a].y += players[a].yV;
+		players[a].x += players[a].xV;
+		ctx.fillStyle = "red";
+		ctx.fillRect(players[a].x,players[a].y,players[a].w,players[a].h);
+	}
+}
+
+function Button(x,y,w,h,hover,pressed,text)
+{
+	this.x = x;
+	this.y = y;
+	this.w = w;
+	this.h = h;
+	this.hover = hover;
+	this.pressed = pressed;
+	this.text = text;
+}
+
+buttons[0] = new Button(100,350,225,75,false,false,"START");
+buttons[1] = new Button(100,450,300,75,false,false,"OPTIONS");
+
+function drawButtons()
+{
+	for(var a = 0; a < buttons.length; a++)
+	{
+		ctx.fillStyle = "red"
+		ctx.fillRect(buttons[a].x, buttons[a].y, buttons[a].w, buttons[a].h);
+		ctx.font = "60px Arial";
+		ctx.fillStyle = "black"
+		ctx.fillText(buttons[a].text, buttons[a].x + 10, buttons[a].y + 60);
+		if(pX >= buttons[a].x && pX <= buttons[a].x + buttons[a].w && pY >= buttons[a].y && pY <= buttons[a].y + buttons[a].h)
+		{
+			buttons[a].hover = true;
+			ctx.fillStyle = "white"
+			ctx.fillText(buttons[a].text, buttons[a].x + 10, buttons[a].y + 60);
+			if(mouseIsDown)
+			{
+				buttons[a].pressed = true;
+			}
+		}
+	}
+}
+
+function startScreen()
+{
+	ctx.drawImage(startscreen,0,0,800,600);
+	if(buttons[0].pressed)
+	{
+		gameStarted = true;
+		mouseIsDown = false;
+	}
+	
+	if(buttons[1].pressed)
+	{
+		options = true;
+		mouseIsDown = false;
+		
+	}
+	buttons[0] = new Button(100,350,225,75,false,false,"START");
+	buttons[1] = new Button(100,450,300,75,false,false,"OPTIONS");
+}
+
+function optionsLogic()
+{
+	ctx.drawImage(option,0,0,800,600);
+	if(buttons[0].pressed)
+	{
+		options = false;
+		mouseIsDown = false;
+	}
+	buttons[0] = new Button(100,100,200,75,false,false,"BACK");
+	buttons[1] = new Button(800,100,200,100,false,false,"BACK");
+}
+
+function gameLogic()
+{
+	drawPlayer();
+}
+
+function draw()
+{
+	ctx.clearRect(0,0,800,600);
+	
+	if(!gameStarted)
+	{
+		if(options)
+		{
+			console.log("o");
+			optionsLogic();
+			drawButtons();
+		}
+		else
+		{
+			console.log("s");
+			startScreen();
+			drawButtons();
+		}
+	}
+	else if(gameStarted)
+	{
+		console.log("g");
+		gameLogic();
+	}
+}
+setInterval(draw, 10);
+</script>
+</body>
+</html>
